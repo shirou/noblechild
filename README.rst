@@ -1,0 +1,56 @@
+BLE Child
+================
+
+On Intel edison, we can not use `paypal/gatt <http://github.com/paypal/gatt>`_ due to the kernel is old.
+We can patche the kernel but it is difficult for some people.
+
+This library aims to communicate `noble <https://github.com/sandeepmistry/noble>`_ child process which uses the Bluez library.
+And also this has a github.com/paypal/gatt compatible API, after you can use `HCI_CHANNEL_USER` mode, just replace import.
+
+Pre-requirement
+----------------
+
+You shoud install noble before use this library.
+
+::
+
+  cd /path/somewhere/
+  npm install noble
+
+After install noble,   
+
+Set `NOBLE_TOPDIR` environment variable to top of the ``node_modules``. 
+
+For example, when you hit `npm install noble` at `/path/somewhere/`, these two files will be created.
+
+::
+
+   /path/somewhere/node_modules/noble/build/Release/l2cap-ble
+   /path/somewhere/node_modules/noble/build/Release/hci-ble
+
+This time, you should set `NOBLE_TOPDIR` to `/path/somewhere/`.
+
+How to use
+--------------
+
+see example directory.
+
+
+License
+----------
+
+APL 2.0
+
+Copyright (C) 2015 WAKAYAMA Shirou shirou.faw@gmail.com
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
