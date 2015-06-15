@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/paypal/gatt"
+	gatt "github.com/shirou/gatt"
 )
 
 var (
@@ -132,7 +132,7 @@ func (d *device) CancelConnection(p gatt.Peripheral) {
 		log.Printf("no such perfipheral id connected: %s", address)
 		return
 	}
-	l2cap.Stop()
+	l2cap.Close()
 }
 
 /*

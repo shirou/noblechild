@@ -12,7 +12,7 @@ import (
 	"syscall"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/paypal/gatt"
+	"github.com/shirou/gatt"
 )
 
 var (
@@ -20,6 +20,7 @@ var (
 	eventRegex   = regexp.MustCompile("^event (.*)$")
 )
 
+// HCI_BLE is a struct to use noble's hci-ble binary.
 type HCI_BLE struct {
 	path       string
 	stdinPipe  io.WriteCloser
@@ -34,6 +35,7 @@ type HCI_BLE struct {
 	discoveries map[string]HCIEvent
 }
 
+// HCIEvent represents some events from hci.
 type HCIEvent struct {
 	Address       string
 	AddressType   string
@@ -74,16 +76,12 @@ func (hci *HCI_BLE) Init() error {
 
 	cmd.Start()
 
-	//	go hci.In() // not used for hci-ble
 	go cmd.Wait()
 
 	return nil
 }
 
-func (hci *HCI_BLE) In() {
-	io.WriteString(hci.stdinPipe, "")
-}
-
+// Out read stdout from hci
 func (hci *HCI_BLE) Out() {
 	scanner := bufio.NewScanner(hci.stdoutPipe)
 	for scanner.Scan() {
@@ -103,8 +101,6 @@ func (hci *HCI_BLE) StopScan() error {
 }
 
 func (hci *HCI_BLE) ParseStdout(buf string) {
-	//	log.Printf("line = %s", buf)
-
 	switch {
 	case adapterRegex.MatchString(buf):
 		tmp := adapterRegex.FindStringSubmatch(buf)
@@ -123,10 +119,10 @@ func (hci *HCI_BLE) ParseStdout(buf string) {
 		case "unknown":
 			state = gatt.StateUnknown
 		case "unsupported":
-			log.Println("noble warning: adapter does not support Bluetooth Low Energy (BLE, Bluetooth Smart).")
+			log.Error("noble warning: adapter does not support Bluetooth Low Energy (BLE, Bluetooth Smart).")
 			state = gatt.StateUnsupported
 		case "unauthorized":
-			log.Println("warning: adapter state unauthorized, please run as root or with sudo")
+			log.Error("warning: adapter state unauthorized, please run as root or with sudo")
 			state = gatt.StateUnauthorized
 		case "poweredOff":
 			state = gatt.StatePoweredOff
@@ -138,13 +134,13 @@ func (hci *HCI_BLE) ParseStdout(buf string) {
 	case eventRegex.MatchString(buf):
 		tmp := eventRegex.FindStringSubmatch(buf)
 		if len(tmp) != 2 {
-			log.Printf("invalid event line: %s", buf)
+			log.Errorf("invalid event line: %s", buf)
 			return
 		}
 		event := tmp[1]
 		e, err := parseEvent(event)
 		if err != nil {
-			log.Printf("parse event failed: %s", err)
+			log.Errorf("parse event failed: %s", err)
 			return
 		}
 
@@ -156,12 +152,23 @@ func (hci *HCI_BLE) ParseStdout(buf string) {
 
 		// only report after an even number of events, so more advertisement data can be collected
 		if e.Count%2 == 0 {
-			p := NewPerfipheral(hci.device, nil, e.Address)
+			noble, err := FindNobleModule()
+			if err != nil {
+				log.Errorf("could not find l2cap at ParseStdout: %s", err)
+				return
+			}
+			l2cap, err := NewL2CAP(hci.device, noble.L2CAPPath)
+			if err != nil {
+				log.Errorf("could not new l2cap at ParseStdout: %s", err)
+				return
+			}
+
+			p := NewPeripheral(hci.device, l2cap, e.Address)
 			hci.device.peripheralDiscovered(&p, e.Advertisement, e.RSSI)
 		}
 
 	default:
-		log.Println("unknown buf")
+		log.Errorf("unknown output: %s", buf)
 	}
 }
 
@@ -211,6 +218,8 @@ func parseEIR(eir []byte) (gatt.Advertisement, error) {
 		case 0x02: // Incomplete List of 16-bit Service Class UUID
 			fallthrough
 		case 0x03: // Complete List of 16-bit Service Class UUIDs
+			// TODO
+
 			/*
 			   for (j = 0; j < bytes.length; j += 2) {
 			     serviceUuid = bytes.readUInt16LE(j).toString(16);
@@ -248,7 +257,7 @@ func parseEIR(eir []byte) (gatt.Advertisement, error) {
 				if err != nil {
 					return ret, err
 				}
-				if !stringInUUID(uuid, ret.Services) {
+				if !IncludesUUID(uuid, ret.Services) {
 					ret.Services = append(ret.Services, uuid)
 				}
 			}
@@ -259,6 +268,7 @@ func parseEIR(eir []byte) (gatt.Advertisement, error) {
 		case 0x0a: // Tx Power Level
 			ret.TxPowerLevel = int(data[0])
 		case 0x16: // Service Data, there can be multiple occurences
+			// TODO
 			/*
 			   var serviceDataUuid = bytes.slice(0, 2).toString('hex').match(/.{1,2}/g).reverse().join('');
 			   var serviceData = bytes.slice(2, bytes.length);
@@ -283,12 +293,3 @@ type ByteSlice []byte
 func (s ByteSlice) Len() int           { return len(s) }
 func (s ByteSlice) Less(i, j int) bool { return s[i] < s[j] }
 func (s ByteSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
-
-func stringInUUID(a gatt.UUID, list []gatt.UUID) bool {
-	for _, b := range list {
-		if a.Equal(b) {
-			return true
-		}
-	}
-	return false
-}

@@ -21,19 +21,21 @@ After install noble,
 
 Set `NOBLE_TOPDIR` environment variable to top of the ``node_modules``. 
 
-For example, when you hit `npm install noble` at `/path/somewhere/`, these two files will be created.
+For example, when you hit `npm install noble` at `/path/somewhere/`, these two files will be created at
 
 ::
 
    /path/somewhere/node_modules/noble/build/Release/l2cap-ble
    /path/somewhere/node_modules/noble/build/Release/hci-ble
 
-This time, you should set `NOBLE_TOPDIR` to `/path/somewhere/`.
+In this case, you should set `NOBLE_TOPDIR` to `/path/somewhere/`.
 
 How to use
 --------------
 
-see example directory.
+see example/main.go.
+
+Almost same as paypal/gatt but, ``NewDevice`` and ``d.Hanle`` should be use ``noblechild`` functions.
 
 
 License

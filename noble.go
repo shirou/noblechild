@@ -1,6 +1,7 @@
 package noblechild
 
 import (
+	"encoding/hex"
 	"fmt"
 	"os"
 	"path"
@@ -8,6 +9,7 @@ import (
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/shirou/gatt"
 )
 
 type NobleModule struct {
@@ -16,13 +18,12 @@ type NobleModule struct {
 	L2CAPPath string
 }
 
-// build/Release/hci-ble
-// build/Release/l2cap-ble
-
 func init() {
-	log.SetLevel(log.DebugLevel)
+	//	log.SetLevel(log.DebugLevel)
+	log.SetLevel(log.InfoLevel)
 }
 
+// FindNobleModule finds noble module binaries such as hci-ble and l2cap-ble.
 func FindNobleModule() (NobleModule, error) {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
@@ -76,4 +77,24 @@ func AddrToCommaAddr(orig string) string {
 		}
 	}
 	return strings.Join(ret, ":")
+}
+
+// ByteToString converts []byte to string.
+func ByteToString(b []byte) string {
+	return fmt.Sprintf("%02x", b)
+}
+
+// StringToByte converts string to []byte.
+func StringToByte(arg string) ([]byte, error) {
+	return hex.DecodeString(arg)
+}
+
+// IncludesUUID checks the []UUID includes target UUID or not.
+func IncludesUUID(u gatt.UUID, filter []gatt.UUID) bool {
+	for _, f := range filter {
+		if u.Equal(f) {
+			return true
+		}
+	}
+	return false
 }
