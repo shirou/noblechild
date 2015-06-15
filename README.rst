@@ -1,8 +1,7 @@
-BLE Child
+noble child
 ================
 
-On Intel edison, we can not use `paypal/gatt <http://github.com/paypal/gatt>`_ due to the kernel is old.
-We can patche the kernel but it is difficult for some people.
+On `Intel edison <http://www.intel.com/content/www/us/en/do-it-yourself/edison.html>`_, we can not use `paypal/gatt <http://github.com/paypal/gatt>`_ because the kernel is old(3.10). We can patche the kernel but it is difficult for some people.
 
 This library aims to communicate `noble <https://github.com/sandeepmistry/noble>`_ child process which uses the Bluez library.
 And also this has a github.com/paypal/gatt compatible API, after you can use `HCI_CHANNEL_USER` mode, just replace import.
