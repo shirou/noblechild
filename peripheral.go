@@ -98,7 +98,7 @@ func (p *peripheral) DiscoverServices(filter []gatt.UUID) ([]*gatt.Service, erro
 			s.SetHandle(h)
 			s.SetEndHandle(endh)
 
-			if IncludesUUID(u, filter) {
+			if len(filter) == 0 || IncludesUUID(u, filter) {
 				p.svcs = append(p.svcs, s)
 			}
 
@@ -155,7 +155,7 @@ func (p *peripheral) DiscoverCharacteristics(cs []gatt.UUID, s *gatt.Service) ([
 				return nil, fmt.Errorf("Can't find service range that contains 0x%04X - 0x%04X", h, vh)
 			}
 			c := gatt.NewCharacteristic(u, s, props, h, vh)
-			if IncludesUUID(u, cs) {
+			if len(cs) == 0 || IncludesUUID(u, cs) {
 				s.SetCharacteristics(append(s.Characteristics(), c))
 			}
 			b = b[l:]
