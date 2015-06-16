@@ -18,16 +18,22 @@ You shoud install noble before use this library.
 
 After install noble,   
 
-Set `NOBLE_TOPDIR` environment variable to top of the ``node_modules``. 
+Set ``NOBLE_TOPDIR`` environment variable to top of the ``node_modules``. 
 
-For example, when you hit `npm install noble` at `/path/somewhere/`, these two files will be created at
+For example, when you hit ``npm install noble`` at ``/path/somewhere/``, these two files will be created at
 
 ::
 
    /path/somewhere/node_modules/noble/build/Release/l2cap-ble
    /path/somewhere/node_modules/noble/build/Release/hci-ble
 
-In this case, you should set `NOBLE_TOPDIR` to `/path/somewhere/`.
+In this case, you should set ``NOBLE_TOPDIR`` to ``/path/somewhere/``.
+
+Tips
++++++++
+
+noblechild also searchs your ``$HOME`` and the path under the executable binary.
+
 
 How to use
 --------------
