@@ -81,6 +81,18 @@ func (hci *HCI_BLE) Init() error {
 	return nil
 }
 
+func (hci *HCI_BLE) Close() error {
+	err := hci.StopScan()
+	if err != nil {
+		return fmt.Errorf("hci close: stop scan failed:%s", err)
+	}
+	err = hci.command.Process.Signal(syscall.SIGINT)
+	if err != nil {
+		return fmt.Errorf("hci close: stop hci failed:%s", err)
+	}
+	return nil
+}
+
 // Out read stdout from hci
 func (hci *HCI_BLE) Out() {
 	scanner := bufio.NewScanner(hci.stdoutPipe)

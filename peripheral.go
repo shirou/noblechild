@@ -1,5 +1,7 @@
 package noblechild
 
+// This files is almost same as paypal/gatt/peripheral_linux.go. But parsing UUID and accessing via Setter/Getter is different.
+
 import (
 	"encoding/binary"
 	"errors"
@@ -12,12 +14,6 @@ import (
 )
 
 type peripheral struct {
-	NameChanged func(*peripheral)
-
-	// ServicedModified is called when one or more service of a peripheral have changed.
-	// A list of invalid service is provided in the parameter.
-	ServicesModified func(*peripheral, []*gatt.Service)
-
 	d           *device
 	l2cap       *L2CAP_BLE
 	Address     string
@@ -65,7 +61,6 @@ func finish(op byte, h uint16, b []byte) bool {
 }
 
 func (p *peripheral) DiscoverServices(filter []gatt.UUID) ([]*gatt.Service, error) {
-	// TODO: implement the UUID filters
 	// p.pd.Conn.Write([]byte{0x02, 0x87, 0x00}) // MTU
 	done := false
 
@@ -121,7 +116,6 @@ func (p *peripheral) DiscoverIncludedServices(ss []gatt.UUID, s *gatt.Service) (
 }
 
 func (p *peripheral) DiscoverCharacteristics(cs []gatt.UUID, s *gatt.Service) ([]*gatt.Characteristic, error) {
-	// TODO: implement the UUID filters
 	done := false
 	start := s.Handle()
 	var prev *gatt.Characteristic

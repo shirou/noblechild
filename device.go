@@ -2,6 +2,7 @@ package noblechild
 
 import (
 	"errors"
+	"fmt"
 
 	log "github.com/Sirupsen/logrus"
 	gatt "github.com/shirou/gatt"
@@ -59,7 +60,21 @@ func (d *device) Init(f func(gatt.Device, gatt.State)) error {
 }
 
 func (d *device) Stop() error {
+	err := d.hci.Close()
+	if err != nil {
+		return fmt.Errorf("device Stop failed: %s", err)
+	}
+	d.state = gatt.StatePoweredOff
+	for uuid, l2cap := range d.l2caps {
+		err := l2cap.Close()
+		if err != nil {
+			return fmt.Errorf("device Stop l2cap failed: uuid:%s, %s", uuid, err)
+		}
+	}
+	d.l2caps = nil
+
 	return nil
+
 }
 
 func (d *device) AddService(s *gatt.Service) error {

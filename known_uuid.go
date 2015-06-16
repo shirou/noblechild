@@ -1,5 +1,7 @@
 package noblechild
 
+// This file is borrowed from paypal/gatt/known_uuid.
+
 // A dictionary of known service names and type (keyed by service uuid)
 var knownServices = map[string]struct{ Name, Type string }{
 	"1800": {Name: "Generic Access", Type: "org.bluetooth.service.generic_access"},
