@@ -90,7 +90,7 @@ func (p *peripheral) DiscoverServices(filter []gatt.UUID) ([]*gatt.Service, erro
 		for len(b) != 0 {
 			h := binary.LittleEndian.Uint16(b[:2])
 			endh := binary.LittleEndian.Uint16(b[2:4])
-			u, err := gatt.ParseUUID(fmt.Sprintf("%2x", b[4:l]))
+			u, err := gatt.ParseUUID(fmt.Sprintf("%2x", reverse(b[4:l])))
 			if err != nil {
 				return nil, fmt.Errorf("DiscoverServices parseUUID failed: %2x, %s", b[4:l], err)
 			}
@@ -145,7 +145,7 @@ func (p *peripheral) DiscoverCharacteristics(cs []gatt.UUID, s *gatt.Service) ([
 			h := binary.LittleEndian.Uint16(b[:2])
 			props := gatt.Property(b[2])
 			vh := binary.LittleEndian.Uint16(b[3:5])
-			u, err := gatt.ParseUUID(fmt.Sprintf("%2x", b[5:l]))
+			u, err := gatt.ParseUUID(fmt.Sprintf("%2x", reverse(b[5:l])))
 			if err != nil {
 				return nil, fmt.Errorf("DiscoverCharacteristics parseUUID failed: %2x, %s", b[5:l], err)
 			}
@@ -208,7 +208,7 @@ func (p *peripheral) DiscoverDescriptors(ds []gatt.UUID, c *gatt.Characteristic)
 
 		for len(b) != 0 {
 			h := binary.LittleEndian.Uint16(b[:2])
-			u, err := gatt.ParseUUID(fmt.Sprintf("%2x", b[2:l]))
+			u, err := gatt.ParseUUID(fmt.Sprintf("%2x", reverse(b[2:l])))
 			if err != nil {
 				return nil, fmt.Errorf("DiscoverDescriptors parseUUID failed: %2x, %s", b[2:l], err)
 			}
@@ -411,4 +411,18 @@ func (p *peripheral) loop() {
 		}
 
 	}
+}
+
+// reverse returns a reversed copy of u.
+func reverse(u []byte) []byte {
+	// Special-case 16 bit UUIDS for speed.
+	l := len(u)
+	if l == 2 {
+		return []byte{u[1], u[0]}
+	}
+	b := make([]byte, l)
+	for i := 0; i < l/2+1; i++ {
+		b[i], b[l-i-1] = u[l-i-1], u[i]
+	}
+	return b
 }

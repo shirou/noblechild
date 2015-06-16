@@ -51,14 +51,14 @@ func onPeriphConnected(p gatt.Peripheral, err error) {
 	fmt.Println("Connected")
 	defer p.Device().CancelConnection(p)
 
-	s_uuid := gatt.MustParseUUID("e0ff") // TODO why not ffe0?
+	s_uuid := gatt.MustParseUUID("ffe0")
 	service, err := p.DiscoverServices([]gatt.UUID{s_uuid})
 	if err != nil {
 		fmt.Printf("Failed to discover services, err: %s\n", err)
 		return
 	}
 	fmt.Println("ffe0 Service discoverd")
-	c_uuid := gatt.MustParseUUID("e5ff") // TODO: why not ffe5?
+	c_uuid := gatt.MustParseUUID("ffe5")
 	c, err := p.DiscoverCharacteristics([]gatt.UUID{c_uuid}, service[0])
 	if err != nil {
 		fmt.Printf("Failed to discover characteristics, err: %s\n", err)
