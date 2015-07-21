@@ -2,6 +2,7 @@ package noblechild
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os/exec"
@@ -84,12 +85,14 @@ func (l2cap *L2CAP_BLE) Init(address, addressType string) error {
 }
 
 func (l2cap *L2CAP_BLE) Close() error {
+	var errFinished = errors.New("os: process already finished")
+
 	l2cap.stdinPipe.Close()
 	l2cap.stdoutPipe.Close()
 
 	err := l2cap.command.Process.Signal(syscall.SIGINT)
-	if err != nil {
-		log.Printf("fail to stop l2cap: %s", l2cap.Address)
+	if err != nil && err != errFinished {
+		log.Infof("fail to stop l2cap: %s, %s", l2cap.Address, err)
 		return err
 	}
 	return nil
