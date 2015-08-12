@@ -147,6 +147,8 @@ func (d *device) CancelConnection(p gatt.Peripheral) {
 		log.Printf("no such perfipheral id connected: %s", address)
 		return
 	}
+	delete(d.l2caps, address)
+
 	l2cap.Close()
 }
 
