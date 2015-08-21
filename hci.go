@@ -12,7 +12,7 @@ import (
 	"syscall"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/shirou/gatt"
+	"github.com/paypal/gatt"
 )
 
 var (

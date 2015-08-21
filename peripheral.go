@@ -3,6 +3,7 @@ package noblechild
 // This files is almost same as paypal/gatt/peripheral_linux.go. But parsing UUID and accessing via Setter/Getter is different.
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -10,7 +11,7 @@ import (
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/shirou/gatt"
+	"github.com/paypal/gatt"
 )
 
 type peripheral struct {
@@ -236,6 +237,39 @@ func (p *peripheral) ReadCharacteristic(c *gatt.Characteristic) ([]byte, error) 
 	return b, nil
 }
 
+func (p *peripheral) ReadLongCharacteristic(c *gatt.Characteristic) ([]byte, error) {
+	firstRead, err := p.ReadCharacteristic(c)
+	if err != nil {
+		return nil, err
+	}
+	if len(firstRead) < int(p.mtu)-1 {
+		return firstRead, nil
+	}
+
+	var buf bytes.Buffer
+	buf.Write(firstRead)
+	off := uint16(len(firstRead))
+	for {
+		b := make([]byte, 5)
+		op := byte(attOpReadBlobReq)
+		b[0] = op
+		binary.LittleEndian.PutUint16(b[1:3], c.VHandle())
+		binary.LittleEndian.PutUint16(b[3:5], off)
+
+		b = p.sendReq(op, b)
+		b = b[1:]
+		if len(b) == 0 {
+			break
+		}
+		buf.Write(b)
+		off += uint16(len(b))
+		if len(b) < int(p.mtu)-1 {
+			break
+		}
+	}
+	return buf.Bytes(), nil
+}
+
 func (p *peripheral) WriteCharacteristic(c *gatt.Characteristic, value []byte, noRsp bool) error {
 	b := make([]byte, 3+len(value))
 	op := byte(attOpWriteReq)
@@ -321,6 +355,20 @@ func (p *peripheral) ReadRSSI() int {
 	return -1
 }
 
+func (p *peripheral) SetMTU(mtu uint16) error {
+	b := make([]byte, 3)
+	op := byte(attOpMtuReq)
+	b[0] = op
+	binary.LittleEndian.PutUint16(b[1:3], uint16(mtu))
+
+	b = p.sendReq(op, b)
+	serverMTU := binary.LittleEndian.Uint16(b[1:3])
+	if serverMTU < mtu {
+		mtu = serverMTU
+	}
+	p.mtu = mtu
+	return nil
+}
 func searchService(ss []*gatt.Service, start, end uint16) *gatt.Service {
 	for _, s := range ss {
 		if s.Handle() < start && s.EndHandle() >= end {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	log "github.com/Sirupsen/logrus"
-	gatt "github.com/shirou/gatt"
+	gatt "github.com/paypal/gatt"
 )
 
 var (
@@ -86,6 +86,10 @@ func (d *device) RemoveAllServices() error {
 }
 
 func (d *device) SetServices(s []*gatt.Service) error {
+	return NotImplementedError
+}
+
+func (d *device) Advertise(a *gatt.AdvPacket) error {
 	return NotImplementedError
 }
 
