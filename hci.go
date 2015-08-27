@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/paypal/gatt"
@@ -103,6 +104,9 @@ func (hci *HCI_BLE) Out() {
 }
 
 func (hci *HCI_BLE) StartScan() error {
+	log.Debugf("noblechild: start scan  pid: %d", hci.command.Process.Pid)
+	time.Sleep(3 * time.Second)
+
 	return hci.command.Process.Signal(syscall.SIGUSR1)
 }
 func (hci *HCI_BLE) StartScanFilter() error {
